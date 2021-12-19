@@ -9,8 +9,6 @@ import numpy as np
 """
 Creates edge lists for wanted matrices.
 """
-
-
 parser = argparse.ArgumentParser()
 parser.add_argument("filepath", type=str, help="Path to file")
 args = parser.parse_args()
@@ -57,9 +55,9 @@ def main():
     
     similarity_df = create_adjacency_matrix(df)
     similarity_df = similarity_df.stack().reset_index()
-    similarity_df.columns = ['from', 'to','LD,Area,Accession']
-    similarity_df[['LD', 'Area', 'Accession']] = pd.DataFrame(similarity_df['LD,Area,Accession'].tolist(), index=similarity_df.index)
-    similarity_df.drop(columns=['LD,Area,Accession'], inplace=True)
+    similarity_df.columns = ['from', 'to','distance,Area,Accession']
+    similarity_df[['distance', 'Area', 'Accession']] = pd.DataFrame(similarity_df['distance,Area,Accession'].tolist(), index=similarity_df.index)
+    similarity_df.drop(columns=['distance,Area,Accession'], inplace=True)
     file = filepath.split('/')[-1]
     edge_file_name = f'./edge_lists/{file}_edge_list.csv'
     print(f'Writing: {edge_file_name}')

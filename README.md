@@ -26,28 +26,32 @@ Enzym-prediktion är svårt då alla peptider tas i åtanke pga. "brus" och ospe
 Genom att identifiera den längsta peptiden i varje community kan vi skapa ett subset där vi vet att exopeptidasen har minimal verkan.
 Algoritmen blir alltså: network --> community prediction --> get longest peptides --> predict proteases
 
+---
+
 ## Folder structure
 
-- /data\
-- /bin\
-  - /experiment 1\
-  - /experiment 2 \
+- /data
+- /bin
+  - /experiment 1
+  - /experiment 2
 - /test\
-  - /experiment 1\
-  - /experiment 2\
-- /results\
-  - experiment 1\
-  - /experiment 2\
+  - /experiment 1
+  - /experiment 2
+- /results
+  - /experiment 1
+  - /experiment 2
+
+---
 
 ## Workflow
 
 Set up pytest
 
-# Mattias
+### Mattias
 
 1. Proteasprediktion
 
-# Erik
+### Erik
 
 1. skapar edge lists
    - BLOSUM62
