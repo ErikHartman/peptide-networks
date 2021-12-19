@@ -28,16 +28,16 @@ Algoritmen blir alltså: network --> community prediction --> get longest peptid
 
 ## Folder structure
 
-/data
-/bin
-/ experiment 1
-/ experiment 2
-/test
-/experiment 1
-/experiment 2
-/results
-/ experiment 1
-/ experiment 2
+/data\
+/bin\
+/ experiment 1\
+/ experiment 2 \
+/test\
+/experiment 1\
+/experiment 2\
+/results\
+/ experiment 1\
+/ experiment 2\
 
 ## Workflow
 
