@@ -1,0 +1,2 @@
+-10lgP score is increasing for infected samples
+RT is increasing for infected samples

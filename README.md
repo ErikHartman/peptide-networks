@@ -27,11 +27,17 @@ Genom att identifiera den längsta peptiden i varje community kan vi skapa ett s
 Algoritmen blir alltså: network --> community prediction --> get longest peptides --> predict proteases
 
 ---
+## Installing python package
+To run pytest from other folder one needs to run:
+
+pip install -e .
+
+in source folder.
 
 ## Folder structure
 
 - /data
-- /bin
+- /peptide_networks
   - /experiment 1
   - /experiment 2
 - /test\
