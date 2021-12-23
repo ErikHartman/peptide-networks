@@ -115,5 +115,5 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("filepath", type=str, help="Path to file")
     args = parser.parse_args()
-    print(custom_distance("AAG","FAA"))
-    #main(args)
+
+    main(args)
