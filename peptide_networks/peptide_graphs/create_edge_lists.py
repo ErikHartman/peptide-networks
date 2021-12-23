@@ -5,19 +5,20 @@ import argparse
 from tqdm import tqdm
 import re
 import numpy as np
+from Bio import Align
+from Bio.Align import substitution_matrices
 
-"""
-Creates edge lists for wanted matrices.
-"""
-parser = argparse.ArgumentParser()
-parser.add_argument("filepath", type=str, help="Path to file")
-args = parser.parse_args()
-filepath = args.filepath
 
 
 def levenshtein_distance(str_1, str_2):
     return distance(str_1, str_2)
 
+def blosum_pairwise(seq1, seq2):
+    aligner = Align.PairwiseAligner()
+    aligner.substitution_matrix = substitution_matrices.load("BLOSUM62")
+    return aligner.align(seq1, seq2).score
+
+        
 def create_adjacency_matrix(df):
     """
     Creates adjacency matrix using the Levenshtein algorithm. 
@@ -58,10 +59,22 @@ def main():
     similarity_df.columns = ['from', 'to','distance,Area,Accession']
     similarity_df[['distance', 'Area', 'Accession']] = pd.DataFrame(similarity_df['distance,Area,Accession'].tolist(), index=similarity_df.index)
     similarity_df.drop(columns=['distance,Area,Accession'], inplace=True)
-    file = filepath.split('/')[-1]
-    edge_file_name = f'./edge_lists/{file}_edge_list.csv'
-    print(f'Writing: {edge_file_name}')
-    similarity_df.to_csv(edge_file_name)    
+    # file = filepath.split('/')[-1]
+    # edge_file_name = f'./edge_lists/{file}_edge_list.csv'
+    # print(f'Writing: {edge_file_name}')
+    # similarity_df.to_csv(edge_file_name)    
 
 if __name__ == "__main__":
-    main()
+
+    # """
+    # Creates edge lists for wanted matrices.
+    # """
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("filepath", type=str, help="Path to file")
+    # args = parser.parse_args()
+    # filepath = args.filepath
+    seq1 = 'PAVKDLGAEGASDKGTSHVVYTIQLASTFE'
+    seq2 = 'PAVEDLGATGANDKGTLYNIYARNTEGHPRSTVQLGSTFE'
+
+    print(blosum_pairwise(seq1, seq2))
+     # main()
