@@ -39,6 +39,8 @@ in source folder.
 
 Notes: There are **three** main ways of computing the distance in a peptide graph: string distance (e.g., levenshtein distance), evolutionary substitutional matrices (e.g., BLOSUM62) or biophysical properties.
 
+Discuss: biophysical properties, creating edge lists (make it quicker), what to look for in networks, layout for graph (make class?)
+
 ---
 
 <code>python create_edge_lists.py -filepath -matrix [matrix choices: blosum, levenshtein, biophysical]</code>
@@ -46,4 +48,5 @@ Notes: There are **three** main ways of computing the distance in a peptide grap
 <code>python create_networks.py -filepath (for edge list)</code>
 
 Rn the graphs look pretty messy...
+
 ![example graph](/findings/peptide_graphs/network_blosum_34.jpg)
