@@ -56,7 +56,8 @@ Set up pytest
 ### Mattias
 
 1. Proteasprediktion
-
+	Lite frygt 30 % av alla peptider är direkta derivat av andra peptider i populationen.
+	Ca 70 % av alla peptider kan härledas till andra peptider. 
 ### Erik
 
 1. skapar edge lists
