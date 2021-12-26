@@ -44,6 +44,7 @@ def custom_distance(seq1,seq2):
     length_ratio = max(len(seq1)/len(seq2), len(seq2)/len(seq1))
     mw_ratio = max(mw_seq1/mw_seq2, mw_seq2/mw_seq1)
     try:
+        # might be div by 0 since no helix 
         helix_ratio = max(helix_fraction_seq1/helix_fraction_seq2, helix_fraction_seq2/helix_fraction_seq1)
     except ZeroDivisionError:
         helix_ratio = 0
@@ -57,7 +58,7 @@ def custom_distance(seq1,seq2):
     k_helix = 1
     k_vol = 1 
 
-    # return weighted sum??
+    # return weighted sum
     return k_length*length_ratio + k_hp*hp_ratio + k_mw*mw_ratio + k_ip*ip_ratio+k_helix*helix_ratio + k_vol*vol_ratio
 
 def create_adjacency_matrix(df, matrix):
@@ -91,7 +92,6 @@ def create_adjacency_matrix(df, matrix):
 
 def adjacency_matrix_to_edge_list(adjacency_matrix):
     return adjacency_matrix.stack().reset_index()
-
 
 
 def main(args):

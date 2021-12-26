@@ -37,7 +37,10 @@ in source folder.
 
 ---
 
-Notes: There are **three** main ways of computing the distance in a peptide graph: string distance (e.g., levenshtein distance), evolutionary substitutional matrices (e.g., BLOSUM62) or biophysical properties.
+Notes:
+
+- There are **three** main ways of computing the distance in a peptide graph: string distance (e.g., levenshtein distance), evolutionary substitutional matrices (e.g., BLOSUM62) or biophysical properties.
+- Need to find a way to compute the optimal thresholding and optimal way of creating edge-lists.
 
 Discuss: biophysical properties, creating edge lists (make it quicker), what to look for in networks, layout for graph (make class?)
 

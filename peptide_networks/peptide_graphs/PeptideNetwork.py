@@ -85,6 +85,9 @@ class PeptideNetwork():
         fig.tight_layout()
         save_path = save_path.split('/')[-2] + '_' + re.sub('\D', '', save_path)
         plt.savefig(f'{save_path}')
+    
+    def global_centrality_analysis(self, save_path):
+        """ Saves centrality analysis (betweennes, degree centrality) """
 
 # ------------------------------------------------------------------------------ #
 
