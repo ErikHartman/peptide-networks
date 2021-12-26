@@ -16,8 +16,9 @@ class PeptideNetwork():
         Args:
             edge_list (Pandas DataFrame): edge list with the columns: from, to, distance, area and accession.
         """
+        edge_list['weight'] = 1/(1+edge_list['distance'])
         self.edge_list = edge_list
-        self.edge_list['weight'] = 1/(1+edge_list['distance'])
+        
         
     def create_network(self):
         """ Create network using the given edge list. 
@@ -32,7 +33,8 @@ class PeptideNetwork():
             edge_attr="weight")
                 
     def get_communitiess(self):
-        """ Returns a communities object using the Girvan-Newman method.
+        """ 
+        Returns a communities object using the Girvan-Newman method.
         """
         return community.girvan_newman(self.G)
     
