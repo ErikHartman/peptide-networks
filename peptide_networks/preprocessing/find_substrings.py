@@ -104,7 +104,7 @@ if __name__ == '__main__':
         n_parents.append(len(grouped.parents))
         n_daughters.append(grouped.df.shape[0] - len(grouped.parents))
         n_peptides.append(grouped.df.shape[0])
-        nms.append(path.split('/')[0])
+        nms.append(path.split('/')[-1]) # [0] --> [-1]
         print(f'Done in {time.time() - t1}')
         t1 = time.time()
     
