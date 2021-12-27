@@ -5,6 +5,7 @@ from networkx.algorithms import community
 import argparse
 import matplotlib.pyplot as plt
 import re
+import itertools
 
 
 class PeptideNetwork():
@@ -30,9 +31,9 @@ class PeptideNetwork():
             self.edge_list,
             source='from',
             target='to',
-            edge_attr="weight")
+            edge_attr=["weight"])
                 
-    def get_communitiess(self):
+    def get_communities(self):
         """ 
         Returns a communities object using the Girvan-Newman method.
         """
@@ -89,20 +90,46 @@ class PeptideNetwork():
     def global_centrality_analysis(self, save_path):
         """ Saves centrality analysis (betweennes, degree centrality) """
 
+
+    def get_start_and_end_variations(self, protein):
+        """ Returns the variation in start and end positions for communities within a protein. """
+        """ Need to implement this for all proteins in proteins list """
+        def get_start_end(peptide_sequence, protein_sequence):
+            start_pos = protein_sequence.find(peptide_sequence)
+            return start_pos, start_pos+len(peptide_sequence)
+        uniprot_df = pd.read_csv('data/human_proteome.gz')
+        protein_sequence = uniprot_df[ (uniprot_df['trivname'] == protein) ]
+        protein_sequence = protein_sequence['seq'].values[0]
+        comp = self.get_communities()
+        positional_variations = {'n':[], 'start sd':[], 'end sd':[], 'start mean':[], 'end mean':[]}
+        for communities in itertools.islice(comp, 10):
+            sequences = list(sorted(c) for c in communities)
+            for seq in sequences:
+                positions = [get_start_end(s, protein_sequence) for s in seq]
+                start_positions = [p[0] for p in positions]
+                end_positions = [p[1] for p in positions]
+                positional_variations['n'].append(len(seq))
+                positional_variations['start sd'].append(np.std(start_positions))
+                positional_variations['end sd'].append(np.std(end_positions))
+                positional_variations['start mean'].append(np.mean(start_positions))
+                positional_variations['end mean'].append(np.mean(end_positions))
+        return positional_variations
+        
 # ------------------------------------------------------------------------------ #
 
 
 def main(args):
     filepath = args.filepath
     edge_list = pd.read_csv(filepath)
-    proteins = ['HBB_HUMAN', 'FIBA_HUMAN']
-    threshold = 6
+    proteins = ['HBB_HUMAN']
+    threshold = 4
     G = PeptideNetwork(edge_list)
     G.subset_edge_list_with_protein(proteins)
     G.subset_edge_list_with_threshold(threshold)
     G.create_network()
-    G.plot_network('findings/peptide_graphs/network_blosum_34.jpg')
-    
+    p = G.get_start_and_end_variations('HBB_HUMAN')
+    G.plot_network('test.jpg')
+    print(p)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Create edge list from file based on distance matrix')

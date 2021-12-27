@@ -10,7 +10,7 @@ def main():
     merged_df = df.merge(clean_df, on=['size','hash'], how='inner')
     merged_df['Intensity s31'] = merged_df['Area']
     merged_df = merged_df[['Peptide','UniProt ID','Start','End','Intensity s31']]
-    merged_df.to_csv('data/temp/peptigram_input_31.csv', index=False)
+    merged_df.to_csv('data/temp/peptigram_input_31.gz', index=False, compression='gzip')
     
 
 if __name__ == '__main__':
