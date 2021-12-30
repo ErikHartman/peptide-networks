@@ -5,7 +5,6 @@ from networkx.algorithms import community
 import argparse
 import matplotlib.pyplot as plt
 import re
-import plotly.express as px
 import itertools
 
 
@@ -74,12 +73,17 @@ class PeptideNetwork():
         plt.savefig(f'{save_path}')
          
     
-    def global_centrality_analysis(self, save_path):
-        """ Saves centrality analysis (betweennes, degree centrality) """
+    def global_centrality_analysis(self):
+        """ Computes degree centrality, eigenvector centrality and closeness centrality for network """
+        deg_cen = nx.degree_centrality(self.G)
+        eig_cen = nx.eigenvector_centrality(self.G)
+        close_cen = nx.closeness_centrality(self.G)
+        return deg_cen, eig_cen, close_cen
+
 
 
     def get_community_positions(self, protein):
-        """ Returns list of list of tuples for communities within a protein. """
+        """ Returns starts and end positions of peptides partitioned in communities """
         """ Need to implement this for all proteins in proteins list """
         def get_start(peptide_sequence, protein_sequence):
             start_pos = protein_sequence.find(peptide_sequence)
@@ -102,6 +106,7 @@ class PeptideNetwork():
 # ------------------------------------------------------------------------------ #
 
 def plot_position_variance(starts, ends, threshold):
+    plt.clf()
     data = pd.DataFrame(data=zip(starts,ends))
     data.columns = ['starts','ends']
     data['n'] = data['starts'].apply(lambda x: len(x))
@@ -116,21 +121,22 @@ def plot_position_variance(starts, ends, threshold):
         for col1,col2 in zip(lst1,lst2):
             new_data.append([col1, col2, comm, np.sqrt(size)])
     df_output = pd.DataFrame(data =new_data, columns=['start','end','communities','size'])
+    df_output = df_output[ (df_output['start'] > 0 ) ] 
+    df_output = df_output[ (df_output['end'] > 0 ) ] 
     df = df_output
     df = df.groupby('communities').agg(['mean', 'std'])
-    
     df['width'] = df['end']['mean'] - df['start']['mean']
     df['x'] = df['start']['mean'] + (df['end']['mean']-df['start']['mean'])/2
     df['x_sd'] = (df['start']['std'] + df['end']['std'])/2
     df.columns = ['_'.join(col).rstrip('_') for col in df.columns.values]
-    
-    fig = plt.figure(figsize=(8,8))
+    print(df)
     plt.bar(x=df['x'].values,height = df['size_mean'].values,width=df['width'].values , xerr = df['x_sd'].values, alpha=0.5, color='green') 
     plt.xlabel('Sequence')
     plt.ylabel('sqrt(peptides in community)')
     plt.savefig('test.jpg')
     
-def print_distance_histogram(edge_list, save_path):
+def plot_distance_histogram(edge_list, save_path):
+    plt.clf()
     """ Saves a distance histogram to the given save path """
     x = edge_list['distance']
     plt.hist(x, density=True, bins=100)
@@ -138,8 +144,9 @@ def print_distance_histogram(edge_list, save_path):
     plt.xlabel('distance')
     plt.savefig(f'{save_path}')
     
-def degree_analysis(degree_sequence, save_path):
+def plot_degree_analysis(degree_sequence, save_path):
     """ Saves simple degree analysis to the given save path """
+    plt.clf()
     fig, ax= plt.subplots(2,1, figsize=(8, 8))
     ax[0].plot(degree_sequence, "b-", marker="o")
     ax[0].set_title("Degree Rank Plot")
@@ -150,11 +157,9 @@ def degree_analysis(degree_sequence, save_path):
     ax[1].set_xlabel("Degree")
     ax[1].set_ylabel("# of Nodes")
     fig.tight_layout()
-    save_path = save_path.split('/')[-2] + '_' + re.sub('\D', '', save_path)
     plt.savefig(f'{save_path}')
 
     
-
 def main(args):
     filepath = args.filepath
     edge_list = pd.read_csv(filepath)
@@ -164,9 +169,8 @@ def main(args):
     G.subset_edge_list_with_protein(proteins)
     G.subset_edge_list_with_threshold(threshold)
     G.create_network()
-    s,e = G.get_community_positions('HBB_HUMAN')
-    G.plot_network('test2.jpg')
-    plot_position_variance(s,e, 2)
+
+
 
 
 if __name__ == "__main__":
