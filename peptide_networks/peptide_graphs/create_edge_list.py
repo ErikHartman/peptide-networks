@@ -23,6 +23,7 @@ def blosum_distance(seq1, seq2):
     return aligner.align(seq1, seq2).score
        
 def custom_distance(seq1,seq2):
+    """ Returns the weighted euclidian distance of biophysical parameters of peptides """
     pp_seq1 = ProteinAnalysis(seq1)
     pp_seq2 = ProteinAnalysis(seq2)
 
@@ -37,29 +38,25 @@ def custom_distance(seq1,seq2):
     mw_seq2 = pp_seq2.molecular_weight()
     vol_seq1 =  sum(get_aa2volume(pp_seq1).mapping.values())
     vol_seq2 = sum(get_aa2volume(pp_seq2).mapping.values())
-
-    # get ratios > 1
-    hp_ratio = max(hp_seq1/hp_seq2, hp_seq2/hp_seq1)
-    ip_ratio = max(ip_seq1/ip_seq2, ip_seq2/ip_seq1)
-    length_ratio = max(len(seq1)/len(seq2), len(seq2)/len(seq1))
-    mw_ratio = max(mw_seq1/mw_seq2, mw_seq2/mw_seq1)
-    try:
-        # might be div by 0 since no helix 
-        helix_ratio = max(helix_fraction_seq1/helix_fraction_seq2, helix_fraction_seq2/helix_fraction_seq1)
-    except ZeroDivisionError:
-        helix_ratio = 0
-    vol_ratio = max(vol_seq1/vol_seq2, vol_seq2/vol_seq1)
-
+    len_seq1 = len(seq1)
+    len_seq2 = len(seq2)
+    
     # coefficients
-    k_length = 1
+    k_len = 1
     k_hp = 1
     k_ip = 1
     k_mw = 1
     k_helix = 1
     k_vol = 1 
+    
+    # weighted euclidian_distance
+    vec1 = [ip_seq1, helix_fraction_seq1, hp_seq1, mw_seq1, vol_seq1, len_seq1]
+    vec2 = [ip_seq2, helix_fraction_seq2, hp_seq2, mw_seq2, vol_seq2, len_seq2]
+    k_vec = [k_ip, k_helix, k_hp, k_mw, k_vol, k_len]
+    euclidian_distance = np.linalg.norm(vec1-vec2)
+    result = np.multiply(euclidian_distance,k_vec)
 
-    # return weighted sum
-    return k_length*length_ratio + k_hp*hp_ratio + k_mw*mw_ratio + k_ip*ip_ratio+k_helix*helix_ratio + k_vol*vol_ratio
+    return result
 
 def create_adjacency_matrix(df, matrix):
     """
