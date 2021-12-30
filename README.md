@@ -41,8 +41,9 @@ Notes:
 
 - There are **three** main ways of computing the distance in a peptide graph: string distance (e.g., levenshtein distance), evolutionary substitutional matrices (e.g., BLOSUM62) or biophysical properties.
 - Need to find a way to compute the optimal thresholding and optimal way of creating edge-lists.
+- I think BLOSUM and substitional matrices are bad. Let's go with biophysical and levenshtein.
 
-Discuss: biophysical properties, creating edge lists (make it quicker), what to look for in networks, layout for graph (make class?)
+Discuss: biophysical properties, what to look for in networks
 
 ---
 
@@ -50,6 +51,7 @@ Discuss: biophysical properties, creating edge lists (make it quicker), what to 
 <br>
 <code>python create_networks.py -filepath (for edge list)</code>
 
-Rn the graphs look pretty messy...
+Graph for positional partitioning works fairly well.
 
-![example graph](/findings/peptide_graphs/network_blosum_34.jpg)
+![example graph](/findings/peptide_graphs/lev_HBB_31_network.jpg)
+![example graph](/findings/peptide_graphs/lev_HBB_31_position.jpg)
