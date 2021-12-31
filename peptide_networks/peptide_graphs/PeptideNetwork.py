@@ -64,6 +64,7 @@ class PeptideNetwork():
         return sorted([d for n, d in self.G.degree()], reverse=True)
         
     def plot_network(self, save_path):
+        plt.clf()
         """ Plots the network. Color proportional to node color. """
         pos = nx.spring_layout(self.G, weight="weight")
         degree_centrality = nx.degree_centrality(self.G)
@@ -163,12 +164,16 @@ def plot_degree_analysis(degree_sequence, save_path):
 def main(args):
     filepath = args.filepath
     edge_list = pd.read_csv(filepath)
-    proteins = ['HBB_HUMAN']
-    threshold = 2
-    G = PeptideNetwork(edge_list)
-    G.subset_edge_list_with_protein(proteins)
-    G.subset_edge_list_with_threshold(threshold)
-    G.create_network()
+
+    plot_distance_histogram(edge_list, 'findings/peptide_graphs/levenshtein_31.jpg')
+    # proteins = ['HBB_HUMAN']
+    # threshold = 2
+    # G = PeptideNetwork(edge_list)
+    # G.subset_edge_list_with_protein(proteins)
+    # G.subset_edge_list_with_threshold(threshold)
+    # G.create_network()
+    # G.plot_network('test2.jpg')
+    
 
 
 

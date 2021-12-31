@@ -2,3 +2,4 @@ peptide_network_venv/
 __pycache__/
 *egg-info/
 .vscode
+data/edge_lists/
