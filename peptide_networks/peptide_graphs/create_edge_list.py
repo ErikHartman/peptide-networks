@@ -9,8 +9,7 @@ from Bio import Align
 from Bio.Align import substitution_matrices
 from Bio.SeqUtils.IsoelectricPoint import IsoelectricPoint as IP
 from Bio.SeqUtils.ProtParam import ProteinAnalysis
-from Bio.SeqUtils.ProtParam import ProtParamData
-from quantiprot.metrics.aaindex import get_aa2volume, get_aa2hydropathy
+from quantiprot.metrics.aaindex import get_aa2volume
 
 aligner = Align.PairwiseAligner()
 aligner.substitution_matrix = substitution_matrices.load("BLOSUM62")
@@ -21,7 +20,7 @@ def levenshtein_distance(seq_1, seq_2):
 def blosum_distance(seq1, seq2):
     return aligner.align(seq1, seq2).score
        
-def custom_distance(seq1,seq2):
+def biophysical_distance(seq1,seq2):
     """ Returns the weighted euclidean distance of biophysical parameters of peptides """
     pp_seq1 = ProteinAnalysis(seq1)
     pp_seq2 = ProteinAnalysis(seq2)
@@ -39,9 +38,7 @@ def custom_distance(seq1,seq2):
     vol_seq2 = sum(get_aa2volume(pp_seq2).mapping.values())
     len_seq1 = len(seq1)
     len_seq2 = len(seq2)
-    aa_seq1 = list(pp_seq1.get_amino_acids_percent().values())
-    aa_seq2 = list(pp_seq2.get_amino_acids_percent().values())
-    
+
     # coefficients
     k_len = 1
     k_hp = 1
@@ -49,26 +46,27 @@ def custom_distance(seq1,seq2):
     k_mw = 1
     k_helix = 1
     k_vol = 1 
-    k_aa = 1
     
-    # weighted euclidean_distance
+    # weighted normalized euclidean_distance
     def normalized_euclidean(v1, v2):
         return sum(((p-q)/(p+q))**2 if p != 0 and q != 0 else 0 for p, q in zip(v1, v2)) ** .5
-    def euclidean(v1,v2):
-        return sum((p-q)**2 for p, q in zip(v1, v2)) ** .5
     
     vec1 = [ip_seq1, helix_fraction_seq1, hp_seq1, mw_seq1, vol_seq1, len_seq1]
     vec2 = [ip_seq2, helix_fraction_seq2, hp_seq2, mw_seq2, vol_seq2, len_seq2]
     k_vec = [k_ip, k_helix, k_hp, k_mw, k_vol, k_len]
     w_vec1 = np.multiply(vec1, k_vec)
     w_vec2 = np.multiply(vec2, k_vec)
-    
-    aa_vec1 = aa_seq1 * k_aa
-    aa_vec2 = aa_seq2 * k_aa
-    """ Does this make sense? @Mattias """
-    result = euclidean(aa_vec1, aa_vec2) + normalized_euclidean(w_vec1, w_vec2)
-
+    result =  normalized_euclidean(w_vec1, w_vec2)
     return result
+
+def amino_acid_distance(seq1,seq2):
+    pp_seq1 = ProteinAnalysis(seq1)
+    pp_seq2 = ProteinAnalysis(seq2)
+    aa_seq1 = list(pp_seq1.get_amino_acids_percent().values())
+    aa_seq2 = list(pp_seq2.get_amino_acids_percent().values())
+    def euclidean(v1, v2):
+        return sum((p-q)**2 if p != 0 and q != 0 else 0 for p, q in zip(v1, v2)) ** .5
+    return euclidean(aa_seq1, aa_seq2) 
 
 def create_adjacency_matrix(df, matrix):
     """
@@ -88,9 +86,11 @@ def create_adjacency_matrix(df, matrix):
             if(matrix=='levenshtein'):
                 distance = levenshtein_distance(seq1,seq2)
             elif(matrix=='biophysical'):
-                distance = custom_distance(seq1,seq2)
+                distance = biophysical_distance(seq1,seq2)
             elif(matrix=='blosum'):
                 distance = blosum_distance(seq1,seq2)
+            elif(matrix=='aa'):
+                distance = amino_acid_distance(seq1,seq2)
             similarity_for_seq1.append((distance,area,accession)) # accession and area based on "from"        
         similarity_matrix.append(similarity_for_seq1)
 
@@ -136,6 +136,6 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Create edge list from file based on distance matrix')
     parser.add_argument("filepath", type=str, help="Path to file")
-    parser.add_argument("matrix", type=str, choices=['blosum', 'biophysical', 'levenshtein'], default='levenshtein', help="distance matrix")
+    parser.add_argument("matrix", type=str, choices=['blosum', 'biophysical', 'levenshtein', 'aa'], default='levenshtein', help="distance matrix")
     args = parser.parse_args()
     main(args)

@@ -43,7 +43,7 @@ Notes:
 - Need to find a way to compute the optimal thresholding and optimal way of creating edge-lists.
 - I think BLOSUM and substitional matrices are bad. Let's go with biophysical and levenshtein.
 
-Discuss: biophysical properties, what to look for in networks
+Discuss: biophysical properties, what to look for in networks, saving findings.
 
 ---
 

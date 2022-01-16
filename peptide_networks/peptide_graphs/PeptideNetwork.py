@@ -165,13 +165,14 @@ def main(args):
     filepath = args.filepath
     edge_list = pd.read_csv(filepath)
 
-    plot_distance_histogram(edge_list, 'findings/peptide_graphs/levenshtein_31.jpg')
+    #plot_distance_histogram(edge_list, 'findings/peptide_graphs/levenshtein_31.jpg')
     # proteins = ['HBB_HUMAN']
-    # threshold = 2
-    # G = PeptideNetwork(edge_list)
-    # G.subset_edge_list_with_protein(proteins)
-    # G.subset_edge_list_with_threshold(threshold)
-    # G.create_network()
+    threshold = 1
+    G = PeptideNetwork(edge_list)
+
+    G.subset_edge_list_with_threshold(threshold)
+    G.create_network()
+    plot_degree_analysis(G.get_degree_sequence(), 'findings/peptide_graphs/degree_biophysical_34.jpg')
     # G.plot_network('test2.jpg')
     
 
