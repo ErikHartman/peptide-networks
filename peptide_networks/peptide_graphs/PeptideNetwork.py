@@ -39,6 +39,12 @@ class PeptideNetwork():
         """
         return community.girvan_newman(self.G)
     
+    def get_connected_components(self):
+        """
+        Returns a sorted list of connected components.
+        """
+        return sorted(nx.connected_components(self.G), key=len)
+    
     def subset_edge_list_with_threshold(self,threshold):
         """ 
         Subsets the edge list based on distance threshold
@@ -64,12 +70,25 @@ class PeptideNetwork():
         return sorted([d for n, d in self.G.degree()], reverse=True)
         
     def plot_network(self, save_path):
-        plt.clf()
         """ Plots the network. Color proportional to node color. """
+        plt.clf()
         pos = nx.spring_layout(self.G, weight="weight")
         degree_centrality = nx.degree_centrality(self.G)
         degree_centrality_color = np.fromiter(degree_centrality.values(), float)
         nx.draw(self.G, pos=pos, node_size=20, with_labels=False, width=1, alpha=0.6, node_color=degree_centrality_color)
+        plt.title(f'Network')
+        plt.savefig(f'{save_path}')
+        
+    def plot_largest_community(self, save_path):
+        """ Plots the largest community in the network. Color proportional to node color. """
+        plt.clf()
+        G_comm =  self.get_connected_components()
+        G_comm = self.G.subgraph(G_comm)
+        print(G_comm)
+        pos = nx.spring_layout(G_comm, weight="weight")
+        degree_centrality = nx.degree_centrality(G_comm)
+        degree_centrality_color = np.fromiter(degree_centrality.values(), float)
+        nx.draw(G_comm, pos=pos, node_size=20, with_labels=False, width=1, alpha=0.6, node_color=degree_centrality_color)
         plt.title(f'Network')
         plt.savefig(f'{save_path}')
          
@@ -80,8 +99,6 @@ class PeptideNetwork():
         eig_cen = nx.eigenvector_centrality(self.G)
         close_cen = nx.closeness_centrality(self.G)
         return deg_cen, eig_cen, close_cen
-
-
 
     def get_community_positions(self, protein):
         """ Returns starts and end positions of peptides partitioned in communities """
@@ -106,7 +123,7 @@ class PeptideNetwork():
         
 # ------------------------------------------------------------------------------ #
 
-def plot_position_variance(starts, ends, threshold):
+def plot_community_positions(starts, ends, threshold,save_path):
     plt.clf()
     data = pd.DataFrame(data=zip(starts,ends))
     data.columns = ['starts','ends']
@@ -115,9 +132,9 @@ def plot_position_variance(starts, ends, threshold):
     data['communities'] = data.index
     new_data = []
     for i in data.itertuples():
+        comm = i[0]
         lst1 = i[1]
         lst2 = i[2]
-        comm = i[0]
         size = i[3]
         for col1,col2 in zip(lst1,lst2):
             new_data.append([col1, col2, comm, np.sqrt(size)])
@@ -134,10 +151,11 @@ def plot_position_variance(starts, ends, threshold):
     plt.bar(x=df['x'].values,height = df['size_mean'].values,width=df['width'].values , xerr = df['x_sd'].values, alpha=0.5, color='green') 
     plt.xlabel('Sequence')
     plt.ylabel('sqrt(peptides in community)')
-    plt.savefig('test.jpg')
+    plt.savefig(save_path)
     
 def plot_distance_histogram(edge_list, save_path):
     plt.clf()
+    edge_list = edge_list[(edge_list['distance'] <= 20)] # remove infinities
     """ Saves a distance histogram to the given save path """
     x = edge_list['distance']
     plt.hist(x, density=True, bins=100)
@@ -159,24 +177,36 @@ def plot_degree_analysis(degree_sequence, save_path):
     ax[1].set_ylabel("# of Nodes")
     fig.tight_layout()
     plt.savefig(f'{save_path}')
+    
+def plot_connected_component_sizes(connected_components, save_path):
+    sizes = [len(cc) for cc in connected_components]
+    print(sizes)
+    x=range(len(sizes))
+    print(x)
+    plt.clf()
+    plt.bar(x=x, height=sizes)
+    plt.savefig(f'{save_path}')
 
     
 def main(args):
     filepath = args.filepath
     edge_list = pd.read_csv(filepath)
 
-    #plot_distance_histogram(edge_list, 'findings/peptide_graphs/levenshtein_31.jpg')
-    # proteins = ['HBB_HUMAN']
-    threshold = 1
+    
+    proteins = ['HBB_HUMAN']
+    threshold = 3
+    
     G = PeptideNetwork(edge_list)
-
+    G.subset_edge_list_with_protein(proteins)
     G.subset_edge_list_with_threshold(threshold)
     G.create_network()
-    plot_degree_analysis(G.get_degree_sequence(), 'findings/peptide_graphs/degree_biophysical_34.jpg')
-    # G.plot_network('test2.jpg')
+    cc = G.get_connected_components()
+    plot_connected_component_sizes(cc, 'test2.jpg')
+
+    #plot_distance_histogram(edge_list, 'findings/peptide_graphs/biophysical_34.jpg')
+    #plot_degree_analysis(G.get_degree_sequence(), 'findings/peptide_graphs/degree_biophysical_34.jpg')
     
-
-
+    
 
 
 if __name__ == "__main__":

@@ -60,6 +60,7 @@ def biophysical_distance(seq1,seq2):
     return result
 
 def amino_acid_distance(seq1,seq2):
+    
     pp_seq1 = ProteinAnalysis(seq1)
     pp_seq2 = ProteinAnalysis(seq2)
     aa_seq1 = list(pp_seq1.get_amino_acids_percent().values())
@@ -106,8 +107,9 @@ def adjacency_matrix_to_edge_list(adjacency_matrix):
 def main(args):
     filepath = args.filepath
     matrix = args.matrix
+    sample_threshold = args.threshold
     df = pd.read_excel(filepath, engine='openpyxl')
-    
+    df = df.sample(frac = sample_threshold, random_state = 42)
     df.dropna(subset=['Accession'], inplace=True) # remove unidentifiable peptides
     df['Peptide'] = df['Peptide'].apply(lambda x: re.sub("[^a-zA-Z]+", "", x))
     df['Accession'] = df['Accession'].apply(lambda x: str(x).split(':')[0])
@@ -137,5 +139,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Create edge list from file based on distance matrix')
     parser.add_argument("filepath", type=str, help="Path to file")
     parser.add_argument("matrix", type=str, choices=['blosum', 'biophysical', 'levenshtein', 'aa'], default='levenshtein', help="distance matrix")
+    parser.add_argument("threshold", type=float, default=1, help="subset fraction")
     args = parser.parse_args()
     main(args)

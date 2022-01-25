@@ -45,6 +45,11 @@ Notes:
 
 Discuss: biophysical properties, what to look for in networks, saving findings.
 
+Att göra:
+
+- Börja skapa nätverk från subsets.
+- Kvantifiera skillnader mellan inf och ninf (centrality measures, connectivity, assortativity etc)
+
 ---
 
 <code>python create_edge_lists.py -filepath -matrix [matrix choices: blosum, levenshtein, biophysical]</code>
