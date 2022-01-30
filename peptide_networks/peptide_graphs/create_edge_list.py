@@ -79,11 +79,13 @@ def create_adjacency_matrix(df, matrix):
     Peptides = {'aa':df['Peptide'].values, 'Area': df['Area'].values, 'Accession':df['Accession'].values}
     for i, seq1 in tqdm(zip(range(len(Peptides['aa'])), Peptides['aa']), total=len(Peptides['aa'])):
         similarity_for_seq1 = []
-        area = Peptides['Area'][i]
-        accession = Peptides['Accession'][i]
+        area_from = Peptides['Area'][i]
+        accession_from = Peptides['Accession'][i]
         column_and_index.append(seq1)
         for k in range(i+1):
             seq2 = Peptides['aa'][k]
+            area_to = Peptides['Area'][k]
+            accession_to = Peptides['Accession'][k]
             if(matrix=='levenshtein'):
                 distance = levenshtein_distance(seq1,seq2)
             elif(matrix=='biophysical'):
@@ -92,7 +94,7 @@ def create_adjacency_matrix(df, matrix):
                 distance = blosum_distance(seq1,seq2)
             elif(matrix=='aa'):
                 distance = amino_acid_distance(seq1,seq2)
-            similarity_for_seq1.append((distance,area,accession)) # accession and area based on "from"        
+            similarity_for_seq1.append((distance,area_from,area_to,accession_from, accession_to))    
         similarity_matrix.append(similarity_for_seq1)
 
     similarity_df = pd.DataFrame(similarity_matrix)
@@ -126,9 +128,9 @@ def main(args):
     adjacency_matrix = create_adjacency_matrix(df, matrix)
     edge_list = adjacency_matrix_to_edge_list(adjacency_matrix)
     
-    edge_list.columns = ['from', 'to','distance,area,accession']
-    edge_list[['distance', 'area', 'accession']] = pd.DataFrame(edge_list['distance,area,accession'].tolist(), index=edge_list.index)
-    edge_list.drop(columns=['distance,area,accession'], inplace=True)
+    edge_list.columns = ['from', 'to','distance,area_from,area_to,accession_from,accession_to']
+    edge_list[['distance', 'area_from', 'area_to', 'accession_from','accession_to']] = pd.DataFrame(edge_list['distance,area_from,area_to,accession_from,accession_to'].tolist(), index=edge_list.index)
+    edge_list.drop(columns=['distance,area_from,area_to,accession_from,accession_to'], inplace=True)
     file = re.sub('\D', '', filepath)
     print(edge_list)
     edge_list_file_name = f'data/edge_lists/{matrix}/{file}_edge_list.gz'

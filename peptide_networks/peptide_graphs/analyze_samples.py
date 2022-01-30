@@ -1,3 +1,4 @@
+from unittest import result
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
@@ -10,13 +11,17 @@ def plot_community_positions(results_dict, threshold, save_path):
     plt.clf()
     fig, axs = plt.subplots(3,2, figsize=(10,10))
     dict_size = len(results_dict['file'])
+    max_area = 0
     for i, ax in zip(range(0, dict_size), axs.ravel()):
         starts = results_dict['starts'][i]
         ends = results_dict['ends'][i]
+        areas = results_dict['areas'][i]
         file = results_dict['file'][i]
-        data = pd.DataFrame(data=zip(starts,ends))
-        data.columns = ['starts','ends']
+        data = pd.DataFrame(data=zip(starts,ends,areas))
+
+        data.columns = ['starts','ends','areas']
         data['n'] = data['starts'].apply(lambda x: len(x))
+       
         data = data[( data['n'] >= threshold)]
         data['communities'] = data.index
         new_data = []
@@ -24,9 +29,9 @@ def plot_community_positions(results_dict, threshold, save_path):
             comm = i[0]
             lst1 = i[1]
             lst2 = i[2]
-            size = i[3]
+            size = sum(i[3])
             for col1,col2 in zip(lst1,lst2):
-                new_data.append([col1, col2, comm, np.sqrt(size)])
+                new_data.append([col1, col2, comm, size])
         df_output = pd.DataFrame(data =new_data, columns=['start','end','communities','size'])
         df_output = df_output[ (df_output['start'] > 0 ) ] 
         df_output = df_output[ (df_output['end'] > 0 ) ] 
@@ -36,10 +41,13 @@ def plot_community_positions(results_dict, threshold, save_path):
         df['x'] = df['start']['mean'] + (df['end']['mean']-df['start']['mean'])/2
         df['x_sd'] = (df['start']['std'] + df['end']['std'])/2
         df.columns = ['_'.join(col).rstrip('_') for col in df.columns.values]
-        ax.bar(x=df['x'].values,height = df['size_mean'].values,width=df['width'].values , xerr = df['x_sd'].values, alpha=0.5, color='green') 
+        max_area = max(max(df['size_mean'].values), max_area)
+        ax.bar(x=df['x'].values, height = df['size_mean'].values, width=df['width'].values , xerr = df['x_sd'].values, alpha=0.5, color='green') 
         ax.set_xlabel('Sequence')
-        ax.set_ylabel('sqrt(peptides in community)')
+        ax.set_ylabel('Community intensity')
         ax.set_title(file)
+    for ax in axs.ravel():
+        ax.set_ylim([0, int(max_area+0.1*max_area)])
     plt.savefig(save_path)
     
 def plot_distance_histogram(edge_list, save_path):
@@ -99,25 +107,27 @@ def main(args):
     plot results
     """
     dirpath = args.dirpath
-    proteins = ['HBB_HUMAN']
+    proteins = ['FIBA_HUMAN']
     threshold = 3
-    results_dict = {'file':[], 'connected_component_sizes':[], 'degree_sequences' :[], 'starts':[], 'ends':[]}
+    results_dict = {'file':[], 'connected_component_sizes':[], 'degree_sequences' :[], 'starts':[], 'ends':[], 'areas':[]}
     for file in tqdm(os.listdir(dirpath)):
         edge_list = pd.read_csv(dirpath+file)
         G = PeptideNetwork(edge_list)
+        G.normalize_area()
         G.subset_edge_list_with_protein(proteins)
         G.subset_edge_list_with_threshold(threshold)
         G.create_network()
         cc = G.get_connected_components()
         degree_sequence = G.get_degree_sequence()
-        starts, ends = G.get_community_positions(proteins[0])
+        starts, ends, areas = G.get_community_positions(proteins[0])
         results_dict['file'].append(file)
         results_dict['connected_component_sizes'].append(cc)
         results_dict['degree_sequences'].append(degree_sequence)
         results_dict['starts'].append(starts)
         results_dict['ends'].append(ends)
+        results_dict['areas'].append(areas)
     #plot_degree_analysis(results_dict, 'test')
-    plot_community_positions(results_dict,2, 'test.jpg')
+    plot_community_positions(results_dict, 4, 'test.jpg')
     #plot_connected_component_sizes(results_dict, 'FIBA_levenshtein.jpg')
     
     #plot_distance_histogram(edge_list, 'findings/peptide_graphs/biophysical_34.jpg')

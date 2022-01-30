@@ -6,6 +6,7 @@ import argparse
 import matplotlib.pyplot as plt
 import re
 import itertools
+import math
 
 
 class PeptideNetwork():
@@ -17,6 +18,7 @@ class PeptideNetwork():
         Args:
             edge_list (Pandas DataFrame): edge list with the columns: from, to, distance, area and accession.
         """
+        
         edge_list['weight'] = 1/(1+edge_list['distance'])
         self.edge_list = edge_list
         
@@ -27,6 +29,8 @@ class PeptideNetwork():
         Target = 'to'
         Edge attribute = 'weight'
         """
+        self.edge_list = self.edge_list[ (self.edge_list['distance']>0) ]
+        self.edge_list.dropna(inplace=True)
         self.G = nx.from_pandas_edgelist(
             self.edge_list,
             source='from',
@@ -39,6 +43,16 @@ class PeptideNetwork():
         """
         return community.girvan_newman(self.G)
     
+    def normalize_area(self):
+        """ normalizes the area on total sample intensity """
+        total_area = sum(self.edge_list['area_from'].values)
+        order = int(math.log(total_area, 2))
+        nf = 2**order
+        total_area = total_area  / nf
+        self.edge_list['area_from'] = self.edge_list['area_from']/total_area
+        self.edge_list['area_to'] = self.edge_list['area_to']/total_area
+        
+        
     def get_connected_components(self):
         """
         Returns a sorted list of connected components.
@@ -56,12 +70,19 @@ class PeptideNetwork():
         """
         Subsets the edge list based on wanted proteins
         """
-        subset_edge_list = self.edge_list[self.edge_list['accession'].isin(proteins)]
+        subset_edge_list = self.edge_list[self.edge_list['accession_from'].isin(proteins)]
+        subset_edge_list = subset_edge_list[subset_edge_list['accession_to'].isin(proteins)]
         self.edge_list = subset_edge_list
         
  
     def get_edge_list(self):
         return self.edge_list
+    
+    def concatenate_edgelist(self, new_edgelist):
+        self.edge_list = pd.concat([self.edge_list, new_edgelist])
+        self.edge_list = self.edge_list.groupby(by=['from','to']).mean()
+        self.edge_list.reset_index(inplace=True)
+        self.edge_list['weight'] = 1/(1+self.edge_list['distance'])
     
     def get_network(self):
         return self.G
@@ -108,18 +129,36 @@ class PeptideNetwork():
             return start_pos
         def get_end(peptide_sequence, protein_sequence):
             return get_start(peptide_sequence, protein_sequence) +len(peptide_sequence)
+    
         uniprot_df = pd.read_csv('data/human_proteome.gz')
         protein_sequence = uniprot_df[ (uniprot_df['trivname'] == protein) ]
         protein_sequence = protein_sequence['seq'].values[0]
         comp = self.get_communities()
         starts = []
         ends = []
+        areas = []
         for communities in itertools.islice(comp, 1):
             sequences = list(sorted(c) for c in communities)
             for seq in sequences:
-                starts.append([get_start(s, protein_sequence) for s in seq])
-                ends.append([get_end(s, protein_sequence) for s in seq])
-        return starts, ends
+                starts_temp = []
+                ends_temp = []
+                areas_temp = []
+                for s in seq:
+                    starts_temp.append(get_start(s, protein_sequence))
+                    ends_temp.append(get_end(s, protein_sequence))
+                    try:
+                        areas_from = self.edge_list[(self.edge_list['from'] == s)]['area_from'].values[0]
+                        areas_temp.append(areas_from)
+                    except IndexError:
+                        areas_to = self.edge_list[(self.edge_list['to'] == s)]['area_to'].values[0]
+                        areas_temp.append(areas_to)
+                starts.append(starts_temp)
+                ends.append(ends_temp)
+                areas.append(areas_temp)
+        return starts, ends, areas
+    
+    def toString(self):
+        print(f"Network with {len(self.G.nodes())} nodes and {self.G.number_of_edges()} edges")
         
 # ------------------------------------------------------------------------------ #
 
